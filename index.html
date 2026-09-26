@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>國文複習 - 易誤詞辨析互動網頁</title>
+  <title>國文總複習 - 互動學習系統</title>
   <style>
     :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --success-color: #2ecc71;
-      --bg-color: #f8f9fa;
+      --primary-color: #1e293b;
+      --secondary-color: #2563eb;
+      --accent-color: #ef4444;
+      --success-color: #10b981;
+      --bg-color: #f8fafc;
       --card-bg: #ffffff;
-      --text-color: #333333;
+      --text-color: #334155;
     }
 
     * {
@@ -39,12 +39,22 @@
 
     header h1 {
       font-size: 1.8rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
     }
 
-    header p {
+    .unit-selector-wrapper {
+      margin-top: 10px;
+    }
+
+    .unit-select {
+      padding: 0.5rem 1rem;
       font-size: 1rem;
-      opacity: 0.8;
+      font-weight: bold;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background-color: white;
+      color: var(--primary-color);
+      cursor: pointer;
     }
 
     .nav-tabs {
@@ -86,7 +96,7 @@
       display: block;
     }
 
-    /* 重點整理卡片樣式 */
+    /* 重點卡片樣式 */
     .word-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -183,7 +193,7 @@
     .explanation-box {
       margin-top: 1rem;
       padding: 1rem;
-      background-color: #f0f9ff;
+      background-color: #eff6ff;
       border-left: 4px solid var(--secondary-color);
       border-radius: 4px;
       display: none;
@@ -233,8 +243,14 @@
 <body>
 
   <header>
-    <h1>國文複習：單元七 易誤詞辨析</h1>
-    <p>重點對照與線上互動測驗系統</p>
+    <h1>國文總複習：互動學習系統</h1>
+    <div class="unit-selector-wrapper">
+      <label for="unitSelect" style="margin-right: 8px;">選擇複習單元：</label>
+      <select id="unitSelect" class="unit-select" onchange="changeUnit(this.value)">
+        <option value="unit1">單元 7-1：易誤詞辨析</option>
+        <option value="unit2">單元 7-2：狀聲詞辨析</option>
+      </select>
+    </div>
   </header>
 
   <nav class="nav-tabs">
@@ -252,7 +268,7 @@
     <div id="quiz" class="tab-content">
       <div id="quizContainer">
         <div class="quiz-header">
-          <span>題目：<strong id="currentQNum">1</strong> / <span id="totalQNum">14</span></span>
+          <span>題目：<strong id="currentQNum">1</strong> / <span id="totalQNum">0</span></span>
           <span>目前得分：<strong id="currentScore">0</strong> 分</span>
         </div>
 
@@ -268,192 +284,76 @@
         <h2>測驗完成！</h2>
         <div class="score-number" id="finalScore">0 分</div>
         <p id="scoreComment"></p>
-        <button class="restart-btn" onclick="restartQuiz()">重新測驗</button>
+        <button class="restart-btn" onclick="restartQuiz()">重新測驗本單元</button>
       </div>
     </div>
   </div>
 
   <script>
-    // 易誤詞重點資料
-    const wordData = [
-      { pair: "1. 權力 vs 權利", items: [ { term: "權力", def: "具有控制、指揮等影響的力量。" }, { term: "權利", def: "人民依法法律規定得享有並受法律保護的地位或利益。" } ] },
-      { pair: "2. 啟示 vs 啟事", items: [ { term: "啟示", def: "啟發指示，使人有所領悟。" }, { term: "啟事", def: "為了公開聲明某事，而登在報刊或張貼在公告欄上的文字。" } ] },
-      { pair: "3. 報復 vs 抱負", items: [ { term: "報復", def: "對傷害自己的人，以類似的手段進行反擊。" }, { term: "抱負", def: "心中有所懷抱。指志向、理想、願望。" } ] },
-      { pair: "4. 必須 vs 必需", items: [ { term: "必須", def: "副詞。一定、必定。" }, { term: "必需", def: "動詞/形容詞。不可缺少的。" } ] },
-      { pair: "5. 厲害 vs 利害", items: [ { term: "厲害", def: "猛烈、高強；嚴重、劇烈。" }, { term: "利害", def: "利益和損害。" } ] },
-      { pair: "6. 儀容 vs 遺容", items: [ { term: "儀容", def: "儀表容貌。" }, { term: "遺容", def: "人死後的容貌或生前的肖像。" } ] },
-      { pair: "7. 處事 vs 處世", items: [ { term: "處事", def: "治理事務。" }, { term: "處世", def: "待人接物，應付世情。" } ] },
-      { pair: "8. 休養 vs 修養", items: [ { term: "休養", def: "休息調養。" }, { term: "修養", def: "修治涵養；品德、風度。" } ] },
-      { pair: "9. 不齒 vs 不恥", items: [ { term: "不齒", def: "羞與為伍，看不起。" }, { term: "不恥", def: "不認為羞恥。" } ] },
-      { pair: "10. 反應 vs 反映", items: [ { term: "反應", def: "受到刺激而引起的相應活動。" }, { term: "反映", def: "將客觀事物或實質狀況所引發的主觀感受，如實呈現或傳達。" } ] },
-      { pair: "11. 犯難 vs 患難", items: [ { term: "犯難", def: "冒險。" }, { term: "患難", def: "艱難困苦的處境。" } ] },
-      { pair: "12. 不力 vs 不利", items: [ { term: "不力", def: "不盡力、未用心力。" }, { term: "不利", def: "不順遂；有壞處、沒有好處。" } ] },
-      { pair: "13. 功德 vs 公德", items: [ { term: "功德", def: "功業與德行；行善所生的利益。" }, { term: "公德", def: "履行社會義務、顧及公眾利益應遵循的道德。" } ] },
-      { pair: "14. 截止 vs 截至", items: [ { term: "截止", def: "不及物動詞。到某個時期即停止進行。" }, { term: "截至", def: "介詞短語。到某個時候（後需接具體時間）。" } ] }
-    ];
-
-    // 題目資料
-    const quizData = [
-      {
-        q: "1. 下列文句「 」中的詞彙，何者使用最為恰當？",
-        options: [
-          "A) 憲法明確保障了每位國民應有的基本「權力」，任何人不得非法侵害。",
-          "B) 新任總理就職後，隨即展開對行政機關內部「權利」的重組與釋出。",
-          "C) 司法機關必須嚴格依法行使審判「權力」，以維護社會的公平與正義。",
-          "D) 消費者在購買商品時，擁有知情與退換貨的「權力」，受消費者保護法規範。"
+    // 跨單元資料庫
+    const unitsData = {
+      unit1: {
+        title: "單元 7-1：易誤詞辨析",
+        notes: [
+          { pair: "1. 權力 vs 權利", items: [ { term: "權力", def: "具有控制、指揮等影響的力量。" }, { term: "權利", def: "人民依法法律規定得享有並受法律保護的地位或利益。" } ] },
+          { pair: "2. 啟示 vs 啟事", items: [ { term: "啟示", def: "啟發指示，使人有所領悟。" }, { term: "啟事", def: "為了公開聲明某事，登在報刊或張貼在公告欄上的文字。" } ] },
+          { pair: "3. 報復 vs 抱負", items: [ { term: "報復", def: "對傷害自己的人，以類似手段進行反擊。" }, { term: "抱負", def: "心中有所懷抱。指志向、理想、願望。" } ] },
+          { pair: "4. 必須 vs 必需", items: [ { term: "必須", def: "副詞。一定、必定。" }, { term: "必需", def: "動詞/形容詞。不可缺少的。" } ] },
+          { pair: "5. 厲害 vs 利害", items: [ { term: "厲害", def: "猛烈、高強；嚴重、劇烈。" }, { term: "利害", def: "利益和損害。" } ] },
+          { pair: "6. 儀容 vs 遺容", items: [ { term: "儀容", def: "儀表容貌。" }, { term: "遺容", def: "人死後的容貌或生前的肖像。" } ] },
+          { pair: "7. 處事 vs 處世", items: [ { term: "處事", def: "治理事務。" }, { term: "處世", def: "待人接物，應付世情。" } ] },
+          { pair: "8. 休養 vs 修養", items: [ { term: "休養", def: "休息調養。" }, { term: "修養", def: "修治涵養；品德、風度。" } ] },
+          { pair: "9. 不齒 vs 不恥", items: [ { term: "不齒", def: "羞與為伍，看不起。" }, { term: "不恥", def: "不認為羞恥。" } ] },
+          { pair: "10. 反應 vs 反映", items: [ { term: "反應", def: "受刺激引起之活動。" }, { term: "反映", def: "如實呈現客觀狀況或傳達感受。" } ] },
+          { pair: "11. 犯難 vs 患難", items: [ { term: "犯難", def: "冒險、不避艱險。" }, { term: "患難", def: "艱難困苦的處境。" } ] },
+          { pair: "12. 不力 vs 不利", items: [ { term: "不力", def: "不盡力、未用心力。" }, { term: "不利", def: "不順遂；有壞處、沒有好處。" } ] },
+          { pair: "13. 功德 vs 公德", items: [ { term: "功德", def: "功業與德行；行善利益。" }, { term: "公德", def: "履行社會義務應遵循之道德。" } ] },
+          { pair: "14. 截止 vs 截至", items: [ { term: "截止", def: "不及物動詞。到某時期即停止。" }, { term: "截至", def: "介詞短語。到某個時候（後接時間）。" } ] }
         ],
-        answer: 2,
-        exp: "解析：(C)正確。司法機關行使的是具有支配與強制力的政治/行政「權力」。(A)(D)應為受法律保障的「權利」；(B)行政機關內部應為「權力」。"
+        quiz: [
+          { q: "1. 下列文句「 」中的詞彙，何者使用最為恰當？", options: ["A) 憲法保障基本「權力」", "B) 行政機關內部「權利」重組", "C) 依法行使審判「權力」", "D) 退換貨的「權力」"], answer: 2, exp: "解析：(C)正確。審判權力屬於支配與強制力。(A)(D)為「權利」；(B)應為「權力」。" },
+          { q: "2. 下列選項中「啟示」與「啟事」的使用，何者完全正確？", options: ["A) 電影給予道德「啟事」", "B) 刊登人事更動「啟示」", "C) 張貼尋找皮包的「啟事」", "D) 蘊含人生「啟事」"], answer: 2, exp: "解析：(C)正確。「啟事」為公開聲明告示。(A)(D)應為思想上的「啟示」；(B)應為「啟事」。" },
+          { q: "3. 下列文句何者表達最為妥貼？", options: ["A) 懷抱著滿腔「報復」", "B) 法律手段合理「抱負」", "C) 樹立了宏大的「抱負」", "D) 冤冤相報的「抱負」"], answer: 2, exp: "解析：(C)正確。「抱負」指志向理想。(A)應為「抱負」；(B)(D)反擊應為「報復」。" },
+          { q: "4. 下列文句「 」內的詞彙，何者完全符合語法規範？", options: ["A) 研究者「必需」具備邏輯", "B) 生存所「必須」的基本物質", "C) 考生「必須」開考前進場", "D) 生活「必須」品"], answer: 2, exp: "解析：(C)正確。「必須」為副詞修飾動詞。(A)修飾動詞應用「必須」；(B)(D)修飾名詞應用「必需」。" },
+          { q: "5. 下列文句關於「厲害」與「利害」的辨析，何者正確？", options: ["A) 暴風雨非常「利害」", "B) 精於計算「厲害」得失", "C) 工程師技術十分「厲害」", "D) 錯綜複雜的「厲害」關係"], answer: 2, exp: "解析：(C)正確。「厲害」指本領高強。(A)暴風雨應為「厲害」；(B)(D)利益損害應為「利害」。" }
+        ]
       },
-      {
-        q: "2. 下列選項中「啟示」與「啟事」的使用，何者完全正確？",
-        options: [
-          "A) 這部經典電影給予現代人深刻的道德「啟事」，引人深思。",
-          "B) 董事會今日在各大報刊登了重要的人事更動「啟示」。",
-          "C) 社區公布欄上貼有一張尋找遺失皮包的「啟事」，希望能儘速找回。",
-          "D) 大自然中的四季更迭，蘊含著許多寶貴的人生「啟事」。"
+      unit2: {
+        title: "單元 7-2：狀聲詞辨析",
+        notes: [
+          { pair: "一、自然與物品聲", items: [
+            { term: "風聲", def: "蕭蕭、蕭颯、呼呼、瑟瑟" },
+            { term: "雨聲", def: "瀟瀟（風雨聲）、淅淅、淅淅瀝瀝" },
+            { term: "水聲", def: "潺潺、淙淙、泠泠、涼涼、濺濺" },
+            { term: "鳥鳴聲", def: "啾啾、啁啾、嚶嚶、關關、間關、嘎嘎、啞啞、咕咕（鴿子）、呢喃（燕子）" },
+            { term: "蟲鳴/器物", def: "唧唧（蟲鳴）、鏗鏘/銀鐺（金屬）、丁丁（伐木）、霍霍（磨刀）、札札（機杼）" }
+          ] },
+          { pair: "二、與人有關的聲音", items: [
+            { term: "笑聲/哭聲", def: "笑聲：呵呵、嗤嗤、格格、噗哧；哭聲：呱呱、哇哇、嗚嗚、嗚咽咽" },
+            { term: "讀書與說話", def: "「琅琅」上口（讀書）、「牙牙」學語（幼兒）、「喃喃」細語（低語）、嘰嘰喳喳（吵雜細碎）" },
+            { term: "情感與生理", def: "「嘖嘖」稱奇（讚美）、「嗷嗷」待哺（哀號）、飢腸「轆轆」（空腹鳴叫）、「咄咄」自語（感嘆/驚怪）" }
+          ] }
         ],
-        answer: 2,
-        exp: "解析：(C)正確。「啟事」為公開聲明之文字（如尋物啟事）。(A)(D)給予思想領悟者應為「啟示」；(B)報刊刊登聲明應為「啟事」。"
-      },
-      {
-        q: "3. 語文運用講求字詞的精確性。下列文句何者表達最為妥貼？",
-        options: [
-          "A) 青年學者懷抱著滿腔「報復」，矢志為解決氣候變遷問題貢獻所學。",
-          "B) 面對對手的惡意中傷，他選擇以法律手段進行合理的「抱負」。",
-          "C) 這位創業家從小就樹立了宏大的「抱負」，希望能打造國際級企業。",
-          "D) 兩國因邊界爭端爆發軍事衝突，陷入了冤冤相報的「抱負」循環。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「抱負」指志向與理想。(A)應為懷抱「抱負」；(B)(D)反擊傷害行為應為「報復」。"
-      },
-      {
-        q: "4. 下列文句「 」內的詞彙填入，何者完全符合語法與語意規範？",
-        options: [
-          "A) 想要在學術領域取得突破，研究者「必需」具備嚴謹的邏輯思考能力。",
-          "B) 水、空氣與陽光，是維持人類生命運作所「必須」的基本物質。",
-          "C) 依照考場規則，考生「必須」於開考前十五分鐘進場準備。",
-          "D) 出國旅遊時，個人隨身帶的藥品屬於生活「必須」品。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「必須」為副詞，修飾動詞「進場」。(A)修飾動詞「具備」應用副詞「必須」；(B)(D)修飾名詞表不可或缺應使用形容詞「必需」。"
-      },
-      {
-        q: "5. 下列文句中關於「厲害」與「利害」的辨析，何者使用正確？",
-        options: [
-          "A) 這場突如其來的暴風雨非常「利害」，導致路樹紛紛倒塌。",
-          "B) 在商業談判中，雙方代表均精於計算其中的「厲害」得失。",
-          "C) 這位新到任的工程師技術十分「厲害」，迅速解決了系統故障。",
-          "D) 兩家公司利益重疊，彼此之間存在著錯綜複雜的「厲害」關係。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「厲害」指本領高強。(A)暴風雨猛烈應為「厲害」；(B)(D)指利益與損害應使用「利害」。"
-      },
-      {
-        q: "6. 下列各句選詞構句，何者語境最適當且無不恰當用語？",
-        options: [
-          "A) 面試時保持整潔端莊的「遺容」，能給考官留下良好的第一印象。",
-          "B) 家屬在告別式上悲慟萬分，依依不捨地瞻仰逝者的「遺容」。",
-          "C) 學校規定學生每日清晨須接受「遺容」檢查，確保儀表符合規範。",
-          "D) 經過美容師的精修，她的「遺容」煥然一新，展現出高雅的氣質。"
-        ],
-        answer: 1,
-        exp: "解析：(B)正確。「遺容」特指逝者之容貌。(A)(C)(D)對生者容貌儀表應使用「儀容」。"
-      },
-      {
-        q: "7. 下列文句「 」中的詞彙，何者填入後語義最通順且符合慣用法？",
-        options: [
-          "A) 老張性格沉穩，在公司裡處理複雜事務總是「處世」得宜。",
-          "B) 現代社會複雜多變，學習如何圓融「處事」、與人和睦相處是一門學問。",
-          "C) 他遵循古聖先賢的哲理，以此作為立身「處世」的基本準則。",
-          "D) 專案經理在「處世」業務時，展現了極高的行政效率與決斷力。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「處世」指待人接物、立身於社會。(A)(D)處理具體事務應用「處事」；(B)強調與人適應相處應使用「處世」。"
-      },
-      {
-        q: "8. 下列文句關於「休養」與「修養」的運用，何者完全正確？",
-        options: [
-          "A) 手術過後，醫師建議病人必須在家靜心「修養」至少一個月。",
-          "B) 他說話極具風度且待人謙遜，展現了極高的文化與道德「休養」。",
-          "C) 經過這段時間的「休養」生息，該地區的生態環境已逐漸恢復生機。",
-          "D) 一個人即使學識淵博，若缺乏品格「休養」，仍難以獲得他人的尊崇。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「休養生息」為固定詞組。(A)調養身體應為「休養」；(B)(D)指品德涵養應使用「修養」。"
-      },
-      {
-        q: "9. 下列文句「 」中的詞語，何者使用完全正確？",
-        options: [
-          "A) 他為了個人利益不惜出賣朋友，這種卑劣行徑令人「不恥」。",
-          "B) 優秀的學習者應具備「不齒」下問的精神，勇於向他人請教。",
-          "C) 君子重視內在的德行累積，對於惡衣惡食往往「不齒」。",
-          "D) 抄襲他人研究成果屬於嚴重的學術倫理違規，為同儕所「不齒」。"
-        ],
-        answer: 3,
-        exp: "解析：(D)正確。「不齒」指看不起、鄙視。(A)卑劣行徑令人看不起應用「不齒」；(B)不以向地位低者請教為恥應為「不恥下問」；(C)不以貧困為恥應用「不恥」。"
-      },
-      {
-        q: "10. 下列各句中「反應」與「反映」的替換或使用，何者最為精確？",
-        options: [
-          "A) 這篇調查報告真實地「反映」了基層勞工在經濟轉型期所面臨的困境。",
-          "B) 實驗室中的化學物質在加熱後，迅速產生了劇烈的「反映」。",
-          "C) 民眾對於政府新推出的稅制改革措施，普遍給予了正面熱烈的「反映」。",
-          "D) 藝術家透過畫筆，「反應」出對社會不公現象的深刻批判。"
-        ],
-        answer: 0,
-        exp: "解析：(A)正確。「反映」指如實呈現客觀情況。(B)化學現象應為「反應」；(C)受刺激後的意見回饋應為「反應」；(D)呈現批判應使用「反映」。"
-      },
-      {
-        q: "11. 下列文句「 」中的詞彙，何者使用最適切？",
-        options: [
-          "A) 唯有在經歷了生死的「犯難」之後，才能真正考驗出兩人友情深淺。",
-          "B) 消防隊員在火場中不顧自身安危，挺身「患難」，成功救出受困民眾。",
-          "C) 俗話說：「患難」見真情，在面臨逆境時依然陪伴身邊的才是真朋友。",
-          "D) 面對極地探險的各種險阻，探險隊員展現了排除「患難」的精神。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「患難」為名詞，指困苦處境。(A)生死困境應為「患難」；(B)冒險不避艱險應為動詞「挺身犯難」；(D)排除困難應為「排難/犯難」。"
-      },
-      {
-        q: "12. 下列文句「 」中的詞彙，何者使用符合語義規範？",
-        options: [
-          "A) 由於警方防範「不利」，導致該區域治安持續惡化，引發民眾不滿。",
-          "B) 當前的國際經濟形勢對出口導向型企業極為「不力」，必須提早因應。",
-          "C) 行政機關因推動政策「不力」，遭到監察院提出糾正案。",
-          "D) 談判代表在條件「不力」的情況下，依然憑藉智謀爭取到了最大利益。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「不力」指未盡全力，常用於動詞後作補語。(A)防範未盡力應為「不力」；(B)(D)指狀況有壞處、不順遂應使用「不利」。"
-      },
-      {
-        q: "13. 下列文句關於「功德」與「公德」的語境運用，何者正確？",
-        options: [
-          "A) 在公共場所大聲喧嘩且隨地吐痰，是缺乏「功德」心的具體表現。",
-          "B) 許多企業家積極投入慈善賑災活動，這種慷慨解囊的善舉真是「公德」無量。",
-          "C) 維護公園環境衛生是全體市民的責任，展現了良好的社會「公德」。",
-          "D) 古人設立義堂幫助貧困鄉梓，這項「公德」事業深得後人敬仰。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「公德」指社會公共道德。(A)公共場所規範應為「公德心」；(B)(D)慈善行善利益應為「功德」。"
-      },
-      {
-        q: "14. 下列關於「截止」與「截至」的文句，何者完全符合語法規範？",
-        options: [
-          "A) 招生委員會宣布，本次研究所考試報名日期「截至」到本週五下午五點。",
-          "B) 「截止」目前為止，本季度的產品銷售總額已經超越了去年同期紀錄。",
-          "C) 稿件徵選活動已於昨日「截止」，主辦單位現已進入評審與統計階段。",
-          "D) 本次徵文比賽「截止」下個月底，請有意參加者抓緊時間投稿。"
-        ],
-        answer: 2,
-        exp: "解析：(C)正確。「截止」為不及物動詞，不直接帶時間賓語。(A)「截至」已包含「到」，不可寫「截至到」；(B)(D)後面有具體時間賓語時應使用「截至」。"
+        quiz: [
+          { q: "1. 《木蘭詩》中「小弟聞姊來，磨刀霍霍向豬羊」，句中的「霍霍」是用來描寫何種聲音？", options: ["A) 伐木的聲音", "B) 磨刀急速的聲音", "C) 織布機運轉的聲音", "D) 金屬碰撞的聲音"], answer: 1, exp: "解析：(B)正確。「霍霍」形容磨刀急速聲；伐木聲為「丁丁」，機杼織布聲為「札札」。" },
+          { q: "2. 「風雨瀟瀟，雞鳴膠膠」，文中的「瀟瀟」主要用來描寫何種現象？", options: ["A) 風雨急暴或風雨聲", "B) 溪水湍急流動聲", "C) 人聲吵雜細碎", "D) 樹葉掉落聲"], answer: 0, exp: "解析：(A)正確。「瀟瀟」常用來形容風雨急暴聲；流水聲多用「潺潺」或「淙淙」。" },
+          { q: "3. 下列文句「 」中的狀聲詞，何者使用最適當？", options: ["A) 教室裡傳來同學們「啾啾」的讀書聲", "B) 織布房裡傳來「札札」的機杼聲", "C) 小溪「蕭蕭」地流過山谷", "D) 樹上的鳥兒「丁丁」地歡唱"], answer: 1, exp: "解析：(B)正確。「札札」為機杼織布聲。(A)讀書聲應為「琅琅」；(C)流水聲應為「潺潺」；(D)鳥鳴聲應為「啾啾」。" },
+          { q: "4. 下列何者是用來描寫「腹中空腹鳴叫」的狀聲詞？", options: ["A) 喃喃", "B) 轆轆", "C) 嗷嗷", "D) 啞啞"], answer: 1, exp: "解析：(B)正確。「飢腸轆轆」描寫肚子飢餓時的鳴叫聲；「喃喃」為低語；「嗷嗷」為哀號聲。" },
+          { q: "5. 下列各組狀聲詞與其對應的聲音，何者「不正確」？", options: ["A) 伐木聲——丁丁", "B) 蟲鳴聲——唧唧", "C) 燕子叫聲——咕咕", "D) 讚美聲——嘖嘖"], answer: 2, exp: "解析：(C)不正確。「咕咕」多形容鴿子叫聲；燕子叫聲常用「呢喃」。" }
+        ]
       }
-    ];
+    };
 
-    // 初始化重點卡片
+    let currentUnitKey = 'unit1';
+    let currentQ = 0;
+    let score = 0;
+    let answered = false;
+
+    // 渲染重點卡片
     function renderNotes() {
       const grid = document.getElementById('wordGrid');
-      grid.innerHTML = wordData.map(group => `
+      const unit = unitsData[currentUnitKey];
+      grid.innerHTML = unit.notes.map(group => `
         <div class="word-card">
           <h3>${group.pair}</h3>
           ${group.items.map(item => `
@@ -465,16 +365,14 @@
       `).join('');
     }
 
-    // 測驗變數
-    let currentQ = 0;
-    let score = 0;
-    let answered = false;
-
     // 載入題目
     function loadQuestion() {
       answered = false;
-      const q = quizData[currentQ];
+      const quizList = unitsData[currentUnitKey].quiz;
+      const q = quizList[currentQ];
+      
       document.getElementById('currentQNum').innerText = currentQ + 1;
+      document.getElementById('totalQNum').innerText = quizList.length;
       document.getElementById('questionText').innerText = q.q;
       
       const optionsContainer = document.getElementById('optionsContainer');
@@ -491,7 +389,8 @@
       if (answered) return;
       answered = true;
 
-      const q = quizData[currentQ];
+      const quizList = unitsData[currentUnitKey].quiz;
+      const q = quizList[currentQ];
       const buttons = document.querySelectorAll('.option-btn');
 
       buttons.forEach((btn, i) => {
@@ -505,7 +404,7 @@
       });
 
       if (idx === q.answer) {
-        score += Math.round(100 / quizData.length);
+        score += Math.round(100 / quizList.length);
         document.getElementById('currentScore').innerText = score;
       }
 
@@ -519,7 +418,8 @@
     // 下一題
     function nextQuestion() {
       currentQ++;
-      if (currentQ < quizData.length) {
+      const quizList = unitsData[currentUnitKey].quiz;
+      if (currentQ < quizList.length) {
         loadQuestion();
       } else {
         showResults();
@@ -534,9 +434,9 @@
       document.getElementById('finalScore').innerText = `${score} 分`;
 
       let comment = "";
-      if (score >= 90) comment = "太棒了！您對國文易誤詞的理解非常紮實！";
-      else if (score >= 70) comment = "表現良好！再複習一下錯題就能拿滿分囉！";
-      else comment = "加油！建議切換到「重點整理卡片」重新強化觀念。";
+      if (score >= 90) comment = "太厲害了！您對這個單元的觀念掌握得非常完美！";
+      else if (score >= 70) comment = "表現優秀！再對照卡片複習一下錯題就能拿到滿分！";
+      else comment = "加油！建議切換到「重點整理卡片」重新強化一下記憶喔！";
       
       document.getElementById('scoreComment').innerText = comment;
     }
@@ -551,7 +451,14 @@
       loadQuestion();
     }
 
-    // 分頁切換
+    // 切換單元
+    function changeUnit(unitKey) {
+      currentUnitKey = unitKey;
+      renderNotes();
+      restartQuiz();
+    }
+
+    // 切換頁籤 (重點 / 測驗)
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -565,10 +472,9 @@
       document.getElementById(tabId).classList.add('active');
     }
 
-    // 初始化頁面
+    // 初始化
     window.onload = function() {
       renderNotes();
-      document.getElementById('totalQNum').innerText = quizData.length;
       loadQuestion();
     };
   </script>
